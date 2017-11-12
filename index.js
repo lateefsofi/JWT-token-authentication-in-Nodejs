@@ -9,8 +9,8 @@ var config= require('./config');
 var verifyUser= require('./app/verifyUser');
 var User= require('./app/models/user');
 var authenticate= require('./app/authenticate');
-
-var port= process.env.PORT || 3000;
+var enCryptNCompare= require('./app/passwd-encryption-n-compare');
+var port= process.env.PORT || 3001;
 mongoose.connect(config.database);
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -27,22 +27,26 @@ app.use('/api', authenticate);
 
 
 app.get('/setup', function(req, res){
-	var lateef= new User({
+	var user= new User({
 		name: 'test', 
 	    password: 'test', 
 	    role: 'test'
 	});
-
-	lateef.save(function(err){
+	enCryptNCompare.cryptPassword(user.password, function(err, passwd){
+		console.log("Encrypted password: ", passwd);
 		if(err)
 			throw err;
-		res.json({success: 'true'});
-	});
-
+		user.password= passwd;
+		user.save(function(err){
+			if(err)
+				throw err;
+			res.json({success: 'true'});
+		});	
+	})
 });
 
 app.get('/api/getUsers', verifyUser, function(req, res){
-	User.find({},{name: 1, _id: 1, role: 1}, function(err, data){
+	User.find({},{name: 1, _id: 1, role: 1, password: 1}, function(err, data){
 		if(err)
 			throw err
 

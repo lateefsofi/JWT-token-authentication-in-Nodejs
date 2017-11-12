@@ -4,6 +4,8 @@ var User= require('./models/user');
 var jwt= require('jsonwebtoken');
 var app = express();
 var config= require('../config');
+var enCryptNCompare= require('./passwd-encryption-n-compare');
+
 
 app.set('secretOrPrivateKey', config.secret);
 
@@ -22,30 +24,31 @@ apiRoutes.post('/authenticate', function(req, res) {
     } else if (user) {
 
       // check if password matches
-      if (user.password != req.body.password) {
-        res.json({ success: false, message: 'Authentication failed. Wrong password.' });
-      } else {
+      enCryptNCompare.comparePassword(req.body.password, user.password, function(err, isPasswordMatched){
+        if (!isPasswordMatched) {
+          res.json({ success: false, message: 'Authentication failed. Wrong password.' });
+        }
+        else {
 
-        // create a token with given payload
-    const payload = {
-      role: user.role,
-      name: user.name
-    };
-        var token = jwt.sign(payload, app.get('secretOrPrivateKey'), { 
-         expiresIn: '1d' // expires in 1 day
-        });
+                  // create a token with given payload
+                  const payload = {
+                    role: user.role,
+                    name: user.name
+                  };
+                  var token = jwt.sign(payload, app.get('secretOrPrivateKey'), { 
+                   expiresIn: '1d' // expires in 1 day
+                 });
 
-        // return the information including token as JSON
-        res.json({
-          success: true,
-          message: 'login success!',
-          token: token
-        });
-      }   
+                // return the information including token as JSON
+                res.json({
+                  success: true,
+                  message: 'login success!',
+                  token: token
+                });
+              }   
 
+            });
     }
-
   });
 });
-
-module.exports=  apiRoutes;
+  module.exports=  apiRoutes;
