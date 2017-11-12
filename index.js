@@ -10,7 +10,7 @@ var verifyUser= require('./app/verifyUser');
 var User= require('./app/models/user');
 var authenticate= require('./app/authenticate');
 var enCryptNCompare= require('./app/passwd-encryption-n-compare');
-var port= process.env.PORT || 3001;
+var port= process.env.PORT || 1992;
 mongoose.connect(config.database);
 
 app.use(bodyParser.urlencoded({ extended: false }));
